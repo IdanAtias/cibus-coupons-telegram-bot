@@ -8,14 +8,14 @@ type DB interface {
 	Add(c *coupon.Coupon) error
 
 	// GetByID gets a coupon by its id
-	GetByID(id string) (error, *coupon.Coupon)
-
-	// GetByIndex gets a coupon by its index
-	GetByIndex(index uint) (error, *coupon.Coupon)
-
-	// List lists all new coupons
-	List() (error, []*coupon.Coupon)
-
-	// ListUsed lists all used coupons
-	ListUsed() (error, []*coupon.Coupon)
+	//GetByID(id string) (*coupon.Coupon, error)
+	//
+	//// GetByIndex gets a coupon by its index
+	//GetByIndex(index uint) (*coupon.Coupon, error)
+	//
+	//// List lists all new coupons
+	//List() ([]*coupon.Coupon, error)
+	//
+	//// ListUsed lists all used coupons
+	//ListUsed() ([]*coupon.Coupon, error)
 }
