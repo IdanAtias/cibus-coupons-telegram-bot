@@ -17,7 +17,7 @@
 * Web server is registered in Telegram as a webhook for bot updates 
 * Requests to the bot are passed by Telegram to the web server for processing
 
-### Scheme
+### Schema
 * Coupon
   * id (string)
   * index (int)
