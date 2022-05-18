@@ -16,3 +16,6 @@
 
 # goland
 .idea/
+
+# user env
+.env.user
