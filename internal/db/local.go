@@ -45,8 +45,8 @@ func (d *localDB) Add(c *coupon.Coupon) error {
 }
 
 // Use moves the matching coupon file to the used coupons dir
-func (d *localDB) Use(c *coupon.Coupon) error {
-	oldPath, newPath := couponsDir+"/"+c.ID, usedCouponsDir+"/"+c.ID
+func (d *localDB) Use(couponID string) error {
+	oldPath, newPath := couponsDir+"/"+couponID, usedCouponsDir+"/"+couponID
 	if _, err := os.Lstat(oldPath); errors.Is(err, os.ErrNotExist) {
 		return err
 	}

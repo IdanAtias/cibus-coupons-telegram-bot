@@ -90,10 +90,20 @@ func main() {
 						continue
 					}
 
+					// Notify the user if there are no available coupons
+					if len(coupons) == 0 {
+						msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Sorry, there are no available coupons")
+						msg.ReplyToMessageID = update.Message.MessageID
+						if _, err := bot.Send(msg); err != nil {
+							log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
+						}
+						continue
+					}
+
 					// Build a button keyboard where each coupon ID is a button
 					var keyboardButtonRows [][]tgbotapi.KeyboardButton
 					for _, coupon := range coupons {
-						couponStr := fmt.Sprintf("%s - %vILS - %s - %s", coupon.ID, coupon.Value, coupon.Vendor, time.Unix(1652904232, 0))
+						couponStr := fmt.Sprintf("%s - %vILS - %s - %s", coupon.ID, coupon.Value, coupon.Vendor, time.Unix(coupon.Expiration, 0).Format(time.RFC822))
 						keyboardButtonRows = append(
 							keyboardButtonRows,
 							tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(fmt.Sprintf("/use %s", couponStr))),
@@ -110,7 +120,19 @@ func main() {
 				}
 			case "use":
 				{
-					log.Printf("DETECTED /USE")
+					// 'Use' given coupon and notify user
+					cmdArgs := strings.Split(update.Message.Text, " ")
+					couponID := cmdArgs[1]
+					if err := dbClient.Use(couponID); err != nil {
+						log.Printf("Failed marking coupon %q as used", couponID)
+						continue
+					}
+
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Done")
+					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard
+					if _, err := bot.Send(msg); err != nil {
+						log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
+					}
 				}
 			}
 		}

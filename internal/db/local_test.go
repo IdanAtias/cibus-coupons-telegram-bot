@@ -46,14 +46,14 @@ func TestUse(t *testing.T) {
 	require.NoError(t, err)
 
 	// Use
-	require.NoError(t, db.Use(c))
+	require.NoError(t, db.Use(c.ID))
 	_, err = os.Lstat(couponsDir + "/" + "coupon-id")
 	require.True(t, errors.Is(err, os.ErrNotExist))
 	_, err = os.Lstat(usedCouponsDir + "/" + "coupon-id")
 	require.NoError(t, err)
 
 	// Use again and fail
-	require.Error(t, db.Use(c))
+	require.Error(t, db.Use(c.ID))
 
 	// Use non-existing coupon and fail
 	c = coupon.NewCoupon(
@@ -62,7 +62,7 @@ func TestUse(t *testing.T) {
 		100,
 		time.Now().Unix(),
 	)
-	require.Error(t, db.Use(c))
+	require.Error(t, db.Use(c.ID))
 }
 
 func TestList(t *testing.T) {
