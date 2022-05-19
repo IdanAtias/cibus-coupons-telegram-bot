@@ -19,3 +19,4 @@
 
 # user env
 .env.user
+.env.user.*
