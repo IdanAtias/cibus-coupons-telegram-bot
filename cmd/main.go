@@ -12,13 +12,36 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const (
+	EnvVarTGBotToken     = "TG_BOT_TOKEN"
+	EnvVarAllowedUserIDs = "ALLOWED_USER_IDS"
+	EnvVarCouponsBucket  = "COUPONS_BUCKET"
+)
+
 func main() {
-	// Init telegram bot api using the bot token
-	token, found := os.LookupEnv("TG_BOT_TOKEN")
-	if !found {
-		log.Panic("bot token wasn't found")
+	// Load conf from env
+	env := make(map[string]string)
+	for _, name := range []string{
+		EnvVarTGBotToken,
+		EnvVarAllowedUserIDs,
+		EnvVarCouponsBucket,
+	} {
+		val, found := os.LookupEnv(name)
+		if !found {
+			log.Panicf("required env var %q wasn't found", name)
+		}
+		env[name] = val
 	}
-	bot, err := tgbotapi.NewBotAPI(token)
+
+	// Init DB client
+	//dbClient, err := db.NewLocalDBClient() - Uncomment for testing with local FS as db
+	dbClient, err := db.NewS3Client(env[EnvVarCouponsBucket])
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// Init telegram bot api
+	bot, err := tgbotapi.NewBotAPI(env[EnvVarTGBotToken])
 	if err != nil {
 		log.Panic(err)
 	}
@@ -28,17 +51,7 @@ func main() {
 	bot.Debug = true
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-	allowedUserIDsStr, found := os.LookupEnv("ALLOWED_USER_IDS") // Bot will only respond to messages originated from these user IDs
-	if !found {
-		log.Panic("no allowed user IDs found")
-	}
-	allowedUserIDs := strings.Split(allowedUserIDsStr, ",")
-
-	// Init DB client
-	dbClient, err := db.NewLocalDBClient()
-	if err != nil {
-		log.Panic(err)
-	}
+	allowedUserIDs := strings.Split(env[EnvVarAllowedUserIDs], ",") // Bot will only respond to messages originated from these user IDs
 
 	// Process arriving updates
 	updates := bot.GetUpdatesChan(u)
@@ -51,6 +64,7 @@ func main() {
 			for _, allowedUserID := range allowedUserIDs {
 				if allowedUserID == senderID {
 					authorized = true
+					break
 				}
 			}
 
@@ -123,12 +137,20 @@ func main() {
 					// 'Use' given coupon and notify user
 					cmdArgs := strings.Split(update.Message.Text, " ")
 					couponID := cmdArgs[1]
+					replyMsgText := fmt.Sprintf("Using %s", couponID)
 					if err := dbClient.Use(couponID); err != nil {
-						log.Printf("Failed marking coupon %q as used", couponID)
-						continue
+						switch err {
+						case db.ErrCouponAlreadyUsed:
+							replyMsgText = "This coupon was already used"
+						case db.ErrCouponNotExist:
+							replyMsgText = "There is no such coupon"
+						default:
+							log.Printf("Failed marking coupon %q as used", couponID)
+							continue
+						}
 					}
 
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Done")
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, replyMsgText)
 					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard
 					if _, err := bot.Send(msg); err != nil {
 						log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
