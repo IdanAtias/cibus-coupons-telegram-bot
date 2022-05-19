@@ -134,32 +134,36 @@ func main() {
 				}
 			case "use":
 				{
-					// 'Use' given coupon and notify user
+					// Parse 'use' command and extract coupon ID
+					var couponID, replyMsgText string
 					cmdArgs := strings.Split(update.Message.Text, " ")
-					if len(cmdArgs) < 2 {
+					if len(cmdArgs) >= 2 {
+						couponID = cmdArgs[1]
+					} else {
 						log.Printf("No coupon ID was given")
-						continue
+						replyMsgText = "Please specify a coupon (/use <coupon-id>)"
 					}
-					couponID := cmdArgs[1]
-					replyMsgText := fmt.Sprintf("Using %s", couponID)
-					replyToMessageID := 0 // 0 means just posting the message in the chat rather than replying to a specific message
-					if err := dbClient.Use(couponID); err != nil {
-						switch err {
-						case db.ErrCouponAlreadyUsed:
-							replyMsgText = "This coupon was already used"
-							replyToMessageID = update.Message.MessageID
-						case db.ErrCouponNotExist:
-							replyMsgText = "There is no such coupon"
-							replyToMessageID = update.Message.MessageID
-						default:
-							log.Printf("Failed marking coupon %q as used", couponID)
-							continue
+
+					// 'Use' given coupon
+					if couponID != "" {
+						replyMsgText = "Got it"
+						if err := dbClient.Use(couponID); err != nil {
+							switch err {
+							case db.ErrCouponAlreadyUsed:
+								replyMsgText = "This coupon was already used"
+							case db.ErrCouponNotExist:
+								replyMsgText = "There is no such coupon"
+							default:
+								log.Printf("Failed marking coupon %q as used", couponID)
+								replyMsgText = "Something went wrong. Please try again"
+							}
 						}
 					}
 
+					// Reply
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, replyMsgText)
-					msg.ReplyToMessageID = replyToMessageID
-					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard
+					msg.ReplyToMessageID = update.Message.MessageID
+					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard opened in /list
 					if _, err := bot.Send(msg); err != nil {
 						log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
 					}
