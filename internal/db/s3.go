@@ -31,11 +31,6 @@ func NewS3Client(couponsBucket string) (*s3Client, error) {
 	}, nil
 }
 
-// Add is not implemented for s3 client as currently this is not needed
-func (s *s3Client) Add(c *coupon.Coupon) error {
-	return nil
-}
-
 // Use marks the matching coupon as used by moving it to the 'used' folder
 // If coupon is not new ErrCouponAlreadyUsed is returned
 // If coupon is not found ErrCouponNotExist is returned
