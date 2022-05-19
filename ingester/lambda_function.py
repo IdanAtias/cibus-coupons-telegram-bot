@@ -1,3 +1,4 @@
+import os
 import json
 import email
 import re
@@ -5,7 +6,7 @@ import base64
 import boto3
 from datetime import datetime, timezone
 
-BUCKET_NAME = "cibus-coupons-testing"
+BUCKET_NAME = os.environ["COUPONS_BUCKET"]
 
 VENDOR_PHONE_TO_VENDOR_NAME = {
     "04-8247645": "Shufersal-Vardia"
@@ -44,7 +45,7 @@ def lambda_handler(event, context):
 
     # validate that coupon doesn't already exist (as new or used)
     cid = coupon["id"]
-    for key in [cid, f"used/{cid}"]:
+    for key in [f"new/{cid}", f"used/{cid}"]:
         try:
             s3.get_object(Bucket=BUCKET_NAME, Key=key)
             print(f"coupon already exists at '{BUCKET_NAME}/{key}'. skipping ingestion")
@@ -52,11 +53,10 @@ def lambda_handler(event, context):
         except s3.exceptions.NoSuchKey:
             pass
 
-    print(f"saving new coupon to '{BUCKET_NAME}/{cid}'")
+    print(f"saving new coupon to '{BUCKET_NAME}/new/{cid}'")
     s3.put_object(
         Bucket=BUCKET_NAME,
-        Key=cid,
+        Key=f"new/{cid}",
         Body=bytes(json.dumps(coupon), "utf8"),
     )
     return {'statusCode': 200}
-
