@@ -1,13 +1,13 @@
 package main
 
 import (
+	"cibus-coupon-telegram-bot/internal/coupon"
 	"cibus-coupon-telegram-bot/internal/db"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -117,10 +117,9 @@ func main() {
 					// Build a button keyboard where each coupon ID is a button
 					var keyboardButtonRows [][]tgbotapi.KeyboardButton
 					for _, coupon := range coupons {
-						couponStr := fmt.Sprintf("%s - %vILS - %s - %s", coupon.ID, coupon.Value, coupon.Vendor, time.Unix(coupon.Expiration, 0).Format(time.RFC822))
 						keyboardButtonRows = append(
 							keyboardButtonRows,
-							tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(fmt.Sprintf("/use %s", couponStr))),
+							tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(fmt.Sprintf("/use %s", coupon.String()))),
 						)
 					}
 					couponsKeyboard := tgbotapi.NewReplyKeyboard(keyboardButtonRows...)
@@ -146,7 +145,7 @@ func main() {
 
 					// 'Use' given coupon
 					if couponID != "" {
-						replyMsgText = "Got it"
+						replyMsgText = fmt.Sprintf("Using %s", coupon.ReadableCouponID(couponID))
 						if err := dbClient.Use(couponID); err != nil {
 							switch err {
 							case db.ErrCouponAlreadyUsed:
