@@ -142,12 +142,15 @@ func main() {
 					}
 					couponID := cmdArgs[1]
 					replyMsgText := fmt.Sprintf("Using %s", couponID)
+					replyToMessageID := 0 // 0 means just posting the message in the chat rather than replying to a specific message
 					if err := dbClient.Use(couponID); err != nil {
 						switch err {
 						case db.ErrCouponAlreadyUsed:
 							replyMsgText = "This coupon was already used"
+							replyToMessageID = update.Message.MessageID
 						case db.ErrCouponNotExist:
 							replyMsgText = "There is no such coupon"
+							replyToMessageID = update.Message.MessageID
 						default:
 							log.Printf("Failed marking coupon %q as used", couponID)
 							continue
@@ -155,6 +158,7 @@ func main() {
 					}
 
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, replyMsgText)
+					msg.ReplyToMessageID = replyToMessageID
 					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard
 					if _, err := bot.Send(msg); err != nil {
 						log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
