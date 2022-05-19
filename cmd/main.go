@@ -136,6 +136,10 @@ func main() {
 				{
 					// 'Use' given coupon and notify user
 					cmdArgs := strings.Split(update.Message.Text, " ")
+					if len(cmdArgs) < 2 {
+						log.Printf("No coupon ID was given")
+						continue
+					}
 					couponID := cmdArgs[1]
 					replyMsgText := fmt.Sprintf("Using %s", couponID)
 					if err := dbClient.Use(couponID); err != nil {
