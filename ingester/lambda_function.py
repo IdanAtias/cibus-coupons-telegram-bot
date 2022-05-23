@@ -25,22 +25,27 @@ def lambda_handler(event, context):
     mail_str = str(mail_obj["Body"].read().decode("utf-8"))
 
     # construct the cibus coupon
-    # cibus coupon mail has the relevant attributes in the first "text/plain" section
+    # cibus coupon mail has the relevant attributes in one of its text/plain or text/html sections
     # track it and extract coupon attributes based on regex matching
+    # ("text/plain" when forwarding mails for testing, "text/html" when mail arrives directly from cibus)
     coupon = {}
     msg = email.message_from_string(mail_str)
     for part in msg.walk():
-        if part.get_content_type() == "text/plain":
-            data = str(base64.b64decode(bytes(part.get_payload(), "utf8")))
-            coupon["id"] = re.search("91[\d]+", data).group(0)
-            coupon["value"] = int(re.search("[\d]+.00", data).group(0).split(".")[0])  # e.g., '40.00' -> 40
-            vendor_phone = re.search("0[\d]+-[\d]+", data).group(0)
-            coupon["vendor"] = VENDOR_PHONE_TO_VENDOR_NAME[vendor_phone]
-            expiration_str = re.search("[\d]+\/[\d]+\/[\d]+", data).group(0)
-            expiration_datetime = datetime.strptime(expiration_str, "%d/%m/%Y")
-            expiration_datetime_utc = expiration_datetime.replace(tzinfo=timezone.utc)
-            coupon["expiration"] = int(expiration_datetime_utc.timestamp())
-            break
+        if part.get_content_type() in ["text/plain", "text/html"]:
+            try:
+                data = str(base64.b64decode(bytes(part.get_payload(), "utf8")))
+                coupon["id"] = re.search("91[\d]{18}", data).group(0)  # coupon id has 20 chars and starts with '91'
+                coupon["value"] = int(re.search("[\d]+.00", data).group(0).split(".")[0])  # e.g., '40.00' -> 40
+                vendor_phone = re.search("0[\d]+-[\d]+", data).group(0)
+                coupon["vendor"] = VENDOR_PHONE_TO_VENDOR_NAME[vendor_phone]
+                expiration_str = re.search("[\d]+\/[\d]+\/[\d]+", data).group(0)
+                expiration_datetime = datetime.strptime(expiration_str, "%d/%m/%Y")
+                expiration_datetime_utc = expiration_datetime.replace(tzinfo=timezone.utc)
+                coupon["expiration"] = int(expiration_datetime_utc.timestamp())
+                break
+            except Exception:
+                continue
+
     print(f"detected coupon '{coupon}'")
 
     # validate that coupon doesn't already exist (as new or used)
