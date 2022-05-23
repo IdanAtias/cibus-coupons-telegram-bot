@@ -34,7 +34,7 @@ func main() {
 	}
 
 	// Init DB client
-	//dbClient, err := db.NewLocalDBClient() - Uncomment for testing with local FS as db
+	//dbClient, err := db.NewLocalDBClient() //- Uncomment for testing with local FS as db
 	dbClient, err := db.NewS3Client(env[EnvVarCouponsBucket])
 	if err != nil {
 		log.Panic(err)
@@ -134,35 +134,60 @@ func main() {
 			case "use":
 				{
 					// Parse 'use' command and extract coupon ID
-					var couponID, replyMsgText string
+					var couponID, errMsgText string
 					cmdArgs := strings.Split(update.Message.Text, " ")
 					if len(cmdArgs) >= 2 {
 						couponID = cmdArgs[1]
 					} else {
 						log.Printf("No coupon ID was given")
-						replyMsgText = "Please specify a coupon (/use <coupon-id>)"
+						errMsgText = "Please specify a coupon (/use <coupon-id>)"
 					}
 
 					// 'Use' given coupon
-					if couponID != "" {
-						replyMsgText = fmt.Sprintf("Using %s", coupon.ReadableCouponID(couponID))
+					if errMsgText == "" {
 						if err := dbClient.Use(couponID); err != nil {
 							switch err {
 							case db.ErrCouponAlreadyUsed:
-								replyMsgText = "This coupon was already used"
+								errMsgText = "This coupon was already used"
 							case db.ErrCouponNotExist:
-								replyMsgText = "There is no such coupon"
+								errMsgText = "There is no such coupon"
 							default:
 								log.Printf("Failed marking coupon %q as used", couponID)
-								replyMsgText = "Something went wrong. Please try again"
+								errMsgText = "Something went wrong. Please try again"
 							}
 						}
 					}
 
+					// Generate coupon's barcode
+					// In case of an error, fallback to regular text message with the coupon ID
+					var barcodePath, useCouponMsg string
+					if errMsgText == "" {
+						useCouponMsg = fmt.Sprintf("Using %s", coupon.ReadableCouponID(couponID))
+						barcodePath, err = coupon.GenerateBarcodeFile(couponID)
+						if err != nil {
+							log.Printf("Failed creating barcode for coupon %q", couponID)
+							errMsgText = useCouponMsg
+						}
+					}
+
+					// Construct the message to reply with
+					var photoMsg tgbotapi.PhotoConfig
+					var textMsg tgbotapi.MessageConfig
+					var msg tgbotapi.Chattable
+					if errMsgText == "" {
+						photoMsg = tgbotapi.NewPhoto(update.Message.Chat.ID, tgbotapi.FilePath(barcodePath))
+						photoMsg.Caption = useCouponMsg
+						photoMsg.ReplyToMessageID = update.Message.MessageID
+						photoMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard opened in /list
+						msg = photoMsg
+					} else {
+						textMsg = tgbotapi.NewMessage(update.Message.Chat.ID, errMsgText)
+						textMsg.ReplyToMessageID = update.Message.MessageID
+						textMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard opened in /list
+						msg = textMsg
+					}
+
 					// Reply
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, replyMsgText)
-					msg.ReplyToMessageID = update.Message.MessageID
-					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true) // Close keyboard opened in /list
 					if _, err := bot.Send(msg); err != nil {
 						log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
 					}

@@ -2,7 +2,12 @@ package coupon
 
 import (
 	"fmt"
+	"image/png"
+	"os"
 	"time"
+
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/code128"
 )
 
 // Coupon is the object representing a Cibus coupon
@@ -44,4 +49,28 @@ func ReadableCouponID(couponID string) string {
 		readableCouponID = readableCouponID + string(couponID[i])
 	}
 	return readableCouponID
+}
+
+// GenerateBarcodeFile generates a barcode png photo based on the coupon ID and return its path
+func GenerateBarcodeFile(couponID string) (string, error) {
+	// Create the barcode
+	code, err := code128.Encode(couponID)
+	if err != nil {
+		return "", err
+	}
+
+	// Scale the barcode so it can be easily scanned
+	scaledCode, err := barcode.Scale(code, 500, 200)
+	if err != nil {
+		return "", err
+	}
+
+	// create the output file encoded as png
+	filePath := "/tmp/barcode.png"
+	file, err := os.Create(filePath)
+	if err != nil {
+		return "", nil
+	}
+	defer file.Close()
+	return filePath, png.Encode(file, scaledCode)
 }
