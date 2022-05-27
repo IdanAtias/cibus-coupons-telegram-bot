@@ -51,9 +51,10 @@ func main() {
 	bot.Debug = true
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-	allowedUserIDs := strings.Split(env[EnvVarAllowedUserIDs], ",") // Bot will only respond to messages originated from these user IDs
 
 	// Process arriving updates
+	// Respond only to updates originated from authorized users (i.e., ALLOWED_USER_IDS)
+	allowedUserIDs := strings.Split(env[EnvVarAllowedUserIDs], ",")
 	updates := bot.GetUpdatesChan(u)
 	for update := range updates {
 		if update.Message != nil {
@@ -72,9 +73,9 @@ func main() {
 			// In debug mode also reply with a proper message
 			if !authorized {
 				log.Printf("Skipping update: user %q (ID: %s) is not authorized", sender, senderID)
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "You are not authorized to use this bot")
-				msg.ReplyToMessageID = update.Message.MessageID
 				if bot.Debug {
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "You are not authorized to use this bot")
+					msg.ReplyToMessageID = update.Message.MessageID
 					if _, err := bot.Send(msg); err != nil {
 						log.Printf("Failed to reply to user %q on message id %q", sender, update.Message.MessageID)
 					}

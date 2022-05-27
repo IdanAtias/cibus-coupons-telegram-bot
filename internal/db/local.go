@@ -14,9 +14,7 @@ const (
 )
 
 // localDB is used for local testing purposes
-type localDB struct {
-	cache []*coupon.Coupon // cache holds the collection of coupons; loaded at startup
-}
+type localDB struct{}
 
 // NewLocalDBClient creates a new local db client
 func NewLocalDBClient() (*localDB, error) {
@@ -47,7 +45,7 @@ func (d *localDB) Add(c *coupon.Coupon) error {
 // Use moves the matching coupon file to the used coupons dir
 func (d *localDB) Use(couponID string) error {
 	oldPath, newPath := couponsDir+"/"+couponID, usedCouponsDir+"/"+couponID
-	if _, err := os.Lstat(oldPath); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(oldPath); errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	if err := os.Rename(oldPath, newPath); err != nil {
