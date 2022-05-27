@@ -1,11 +1,12 @@
 package db
 
 import (
-	"cibus-coupon-telegram-bot/internal/coupon"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"os"
+
+	"github.com/idanatias/cibus-coupons-telegram-bot/pkg/coupon"
 )
 
 const (

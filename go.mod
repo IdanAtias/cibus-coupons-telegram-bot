@@ -1,4 +1,4 @@
-module cibus-coupon-telegram-bot
+module github.com/idanatias/cibus-coupons-telegram-bot
 
 go 1.17
 
@@ -9,11 +9,12 @@ require (
 )
 
 require (
+	github.com/aws/aws-lambda-go v1.32.0
 	github.com/boombuler/barcode v1.0.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )

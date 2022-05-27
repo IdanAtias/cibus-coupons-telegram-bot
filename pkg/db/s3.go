@@ -1,15 +1,16 @@
 package db
 
 import (
-	"cibus-coupon-telegram-bot/internal/coupon"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"io"
-	"log"
+	"github.com/idanatias/cibus-coupons-telegram-bot/pkg/coupon"
 )
 
 type s3Client struct {

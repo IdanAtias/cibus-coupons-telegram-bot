@@ -20,3 +20,6 @@
 # user env
 .env.user
 .env.user.*
+
+# executables
+cmd/bot*

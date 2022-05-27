@@ -1,6 +1,6 @@
 package interfaces
 
-import "cibus-coupon-telegram-bot/internal/coupon"
+import "github.com/idanatias/cibus-coupons-telegram-bot/pkg/coupon"
 
 // DB is the interface for accessing the coupons database
 type DB interface {
