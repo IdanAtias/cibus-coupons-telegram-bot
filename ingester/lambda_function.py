@@ -35,7 +35,7 @@ def lambda_handler(event, context):
             try:
                 data = str(base64.b64decode(bytes(part.get_payload(), "utf8")))
                 coupon["id"] = re.search("91[\d]{18}", data).group(0)  # coupon id has 20 chars and starts with '91'
-                coupon["value"] = int(re.search("[\d]+.00", data).group(0).split(".")[0])  # e.g., '40.00' -> 40
+                coupon["value"] = int(re.search("[\d]+\.00", data).group(0).split(".")[0])  # e.g., '40.00' -> 40
                 vendor_phone = re.search("0[\d]+-[\d]+", data).group(0)
                 coupon["vendor"] = VENDOR_PHONE_TO_VENDOR_NAME[vendor_phone]
                 expiration_str = re.search("[\d]+\/[\d]+\/[\d]+", data).group(0)
@@ -44,6 +44,7 @@ def lambda_handler(event, context):
                 coupon["expiration"] = int(expiration_datetime_utc.timestamp())
                 break
             except Exception:
+                coupon = {}
                 continue
 
     print(f"detected coupon '{coupon}'")
