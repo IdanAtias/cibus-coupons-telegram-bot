@@ -24,10 +24,10 @@
 
 ### Coupons ingestion
 * New coupon orders arrive by mail
-* A forward rule is forwarding the mails to a special "mail box" managed by Amazon SES
+* A forward rule is forwarding the mails to a special "mailbox" managed by Amazon SES
 * SES keeps the mails in the coupons bucket in a special folder (e.g., /email)
 * SES triggers a special lambda (i.e., ingester) that process the mail and extracts the coupon attributes
-* Ingester stores the coupon in the bukcet (e.g., in /new)
+* Ingester stores the coupon in the bucket (e.g., in /new)
 <img width="1563" alt="image" src="https://user-images.githubusercontent.com/12379320/171339394-3798e93e-be4e-43d4-8606-8747007c2cd5.png">
 
 

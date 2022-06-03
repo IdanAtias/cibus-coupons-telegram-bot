@@ -65,11 +65,11 @@ func GenerateBarcodeFile(couponID string) (string, error) {
 		return "", err
 	}
 
-	// create the output file encoded as png
+	// Create the output file encoded as png
 	filePath := "/tmp/barcode.png"
 	file, err := os.Create(filePath)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	defer file.Close()
 	return filePath, png.Encode(file, scaledCode)
