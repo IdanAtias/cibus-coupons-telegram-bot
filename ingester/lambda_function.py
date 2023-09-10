@@ -38,12 +38,9 @@ def lambda_handler(event, context):
                 coupon["value"] = int(re.search("[\d]+\.00", data).group(0).split(".")[0])  # e.g., '40.00' -> 40
                 vendor_phone = re.search("0[\d]+-[\d]+", data).group(0)
                 coupon["vendor"] = VENDOR_PHONE_TO_VENDOR_NAME[vendor_phone]
-                expiration_str = re.search("[\d]+\/[\d]+\/[\d]+", data).group(0)
-                expiration_datetime = datetime.strptime(expiration_str, "%d/%m/%Y")
-                expiration_datetime_utc = expiration_datetime.replace(tzinfo=timezone.utc)
-                coupon["expiration"] = int(expiration_datetime_utc.timestamp())
                 break
             except Exception:
+                print(f"skipping faulty cupon '{coupon}'")
                 coupon = {}
                 continue
 

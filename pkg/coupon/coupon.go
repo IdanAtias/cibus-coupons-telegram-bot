@@ -2,40 +2,35 @@ package coupon
 
 import (
 	"fmt"
-	"image/png"
-	"os"
-	"time"
-
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/code128"
+	"image/png"
+	"os"
 )
 
 // Coupon is the object representing a Cibus coupon
 type Coupon struct {
-	ID         string `json:"id"`         // ID is the coupon's unique identifier
-	Vendor     string `json:"vendor"`     // Vendor is the shopping Vendor the coupon refers to
-	Value      int    `json:"value"`      // Value is the amount of money available in the coupon
-	Expiration int64  `json:"expiration"` // Expiration is the epoch timestamp in which the coupon will expire
+	ID     string `json:"id"`     // ID is the coupon's unique identifier
+	Vendor string `json:"vendor"` // Vendor is the shopping Vendor the coupon refers to
+	Value  int    `json:"value"`  // Value is the amount of money available in the coupon
 }
 
 // NewCoupon creates a new coupon
-func NewCoupon(id, vendor string, value int, expiration int64) *Coupon {
+func NewCoupon(id, vendor string, value int) *Coupon {
 	return &Coupon{
-		ID:         id,
-		Vendor:     vendor,
-		Value:      value,
-		Expiration: expiration,
+		ID:     id,
+		Vendor: vendor,
+		Value:  value,
 	}
 }
 
 // String returns a string representation of the coupon
 func (c *Coupon) String() string {
 	return fmt.Sprintf(
-		"%s | %vILS | %s | %s",
+		"%s | %vILS | %s",
 		c.ID,
 		c.Value,
 		c.Vendor,
-		time.Unix(c.Expiration, 0).Format(time.RFC822),
 	)
 }
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/idanatias/cibus-coupons-telegram-bot/pkg/coupon"
 
@@ -39,7 +38,6 @@ func TestAdd(t *testing.T) {
 		"coupon-id",
 		"vendor",
 		100,
-		time.Now().Unix(),
 	)
 	require.NoError(mt, db.Add(c))
 	_, err = os.Lstat(couponsDir + "/" + "coupon-id")
@@ -60,7 +58,6 @@ func TestUse(t *testing.T) {
 		"coupon-id",
 		"vendor",
 		100,
-		time.Now().Unix(),
 	)
 	// Add
 	require.NoError(mt, db.Add(c))
@@ -82,7 +79,6 @@ func TestUse(t *testing.T) {
 		"coupon-id-1",
 		"vendor",
 		100,
-		time.Now().Unix(),
 	)
 	require.Error(mt, db.Use(c.ID))
 }
@@ -94,22 +90,19 @@ func TestList(t *testing.T) {
 	require.NoError(mt, err)
 	coupons := []*coupon.Coupon{
 		{
-			ID:         "cid1",
-			Vendor:     "vendor1",
-			Value:      100,
-			Expiration: 111,
+			ID:     "cid1",
+			Vendor: "vendor1",
+			Value:  100,
 		},
 		{
-			ID:         "cid2",
-			Vendor:     "vendor2",
-			Value:      50,
-			Expiration: 222,
+			ID:     "cid2",
+			Vendor: "vendor2",
+			Value:  50,
 		},
 		{
-			ID:         "cid3",
-			Vendor:     "vendor3",
-			Value:      40,
-			Expiration: 333,
+			ID:     "cid3",
+			Vendor: "vendor3",
+			Value:  40,
 		},
 	}
 

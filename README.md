@@ -17,7 +17,6 @@
   * id (string)
   * vendor (string)
   * value (int)
-  * expiration (date)
 
 ### Data store
 * Coupons will be saved in an object store (e.g., s3)
